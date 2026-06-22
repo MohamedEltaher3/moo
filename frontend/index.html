@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GradeOS — لوحة المعلومات</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:             #0B0D12;
+      --surface:        #111318;
+      --card:           #181B22;
+      --card-hover:     #1E2230;
+      --border:         rgba(255,255,255,0.07);
+      --border-strong:  rgba(255,255,255,0.12);
+      --primary:        #6366F1;
+      --primary-dim:    rgba(99,102,241,0.12);
+      --primary-border: rgba(99,102,241,0.3);
+      --green:          #10B981;
+      --green-dim:      rgba(16,185,129,0.12);
+      --amber:          #F59E0B;
+      --amber-dim:      rgba(245,158,11,0.12);
+      --red:            #EF4444;
+      --red-dim:        rgba(239,68,68,0.12);
+      --blue:           #3B82F6;
+      --blue-dim:       rgba(59,130,246,0.12);
+      --text:           #E8EBF0;
+      --text-muted:     #6B7785;
+      --text-subtle:    #3D4655;
+      --radius:         10px;
+      --radius-lg:      14px;
+      --sidebar-w:      252px;
+    }
+
+    body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .layout { display: flex; min-height: 100vh; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { width: var(--sidebar-w); background: var(--surface); border-left: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; height: 100vh; right: 0; z-index: 100; }
+    .sidebar-brand { padding: 20px 16px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+    .brand-icon { width: 36px; height: 36px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+    .brand-name { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: -0.4px; }
+    .brand-sub  { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+
+    .sidebar nav { padding: 12px 10px; flex: 1; }
+    .nav-section { font-size: 10px; font-weight: 600; color: var(--text-subtle); text-transform: uppercase; letter-spacing: 0.08em; padding: 8px 8px 4px; margin-top: 4px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: var(--radius); cursor: pointer; font-size: 13.5px; font-weight: 500; color: var(--text-muted); transition: all 0.15s; margin-bottom: 2px; border: none; background: none; width: 100%; text-align: right; }
+    .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+    .nav-item.active { background: var(--primary-dim); color: var(--primary); border: 1px solid var(--primary-border); }
+    .nav-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+
+    /* User info + logout */
+    .sidebar-user {
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+    }
+    .user-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .user-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--primary-dim);
+      border: 1px solid var(--primary-border);
+      color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      flex-shrink: 0;
+    }
+    .user-name  { font-size: 13px; font-weight: 600; }
+    .user-email { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+    .btn-logout {
+      width: 100%;
+      padding: 7px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'Cairo', sans-serif;
+      cursor: pointer;
+      background: transparent;
+      color: var(--text-subtle);
+      border: 1px solid var(--border);
+      transition: all 0.15s;
+    }
+    .btn-logout:hover { background: var(--red-dim); color: var(--red); border-color: rgba(239,68,68,0.3); }
+
+    /* ── MAIN ── */
+    .main { flex: 1; margin-right: var(--sidebar-w); min-height: 100vh; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .page-header { padding: 26px 28px 0; display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+    .page-title { font-size: 20px; font-weight: 700; letter-spacing: -0.4px; }
+    .page-sub   { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+    .page-content { padding: 0 28px 36px; }
+
+    /* ── STATS ── */
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 22px; }
+    .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; position: relative; overflow: hidden; }
+    .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+    .stat-card.green::before  { background: var(--green); }
+    .stat-card.purple::before { background: var(--primary); }
+    .stat-card.amber::before  { background: var(--amber); }
+    .stat-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-bottom: 16px; }
+    .stat-card.green .stat-icon  { background: var(--green-dim); }
+    .stat-card.purple .stat-icon { background: var(--primary-dim); }
+    .stat-card.amber .stat-icon  { background: var(--amber-dim); }
+    .stat-value { font-family: 'Space Grotesk', sans-serif; font-size: 34px; font-weight: 700; line-height: 1; margin-bottom: 6px; }
+    .stat-card.green .stat-value  { color: var(--green); }
+    .stat-card.purple .stat-value { color: var(--primary); }
+    .stat-card.amber .stat-value  { color: var(--amber); }
+    .stat-label { font-size: 12px; color: var(--text-muted); }
+
+    /* ── CARD ── */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 20px; }
+    .card-header { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .card-header h3 { font-size: 11px; font-weight: 600; color: var(--text-subtle); text-transform: uppercase; letter-spacing: 0.07em; }
+
+    /* ── TABLE ── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead tr { background: rgba(255,255,255,0.02); }
+    th { padding: 10px 20px; text-align: right; font-size: 10.5px; font-weight: 600; color: var(--text-subtle); text-transform: uppercase; letter-spacing: 0.07em; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    td { padding: 13px 20px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* ── BADGE ── */
+    .badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+    .badge-green  { background: var(--green-dim); color: var(--green); }
+    .badge-purple { background: var(--primary-dim); color: var(--primary); }
+    .badge-amber  { background: var(--amber-dim); color: var(--amber); }
+    .badge-red    { background: var(--red-dim); color: var(--red); }
+    .badge-blue   { background: var(--blue-dim); color: var(--blue); }
+
+    /* ── GRADE CELL ── */
+    .grade-cell { display: flex; align-items: center; gap: 10px; }
+    .grade-num  { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; min-width: 36px; }
+    .grade-bar-container { flex: 1; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; max-width: 56px; }
+    .grade-bar-fill  { height: 100%; border-radius: 2px; }
+    .grade-letter { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 5px; min-width: 24px; text-align: center; }
+
+    /* ── BUTTONS ── */
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--radius); font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; font-family: 'Cairo', sans-serif; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: #5254d4; }
+    .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border-strong); }
+    .btn-ghost:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+    .btn-danger-ghost { background: transparent; color: var(--text-subtle); border: 1px solid var(--border); }
+    .btn-danger-ghost:hover { background: var(--red-dim); color: var(--red); border-color: rgba(239,68,68,0.3); }
+    .btn-sm { padding: 5px 10px; font-size: 11px; }
+
+    /* ── FILTER BAR ── */
+    .filter-bar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .filter-bar input, .filter-bar select { padding: 7px 12px; border: 1px solid var(--border-strong); border-radius: 8px; font-size: 13px; font-family: 'Cairo', sans-serif; background: var(--card); color: var(--text); outline: none; transition: border-color 0.15s; }
+    .filter-bar input:focus, .filter-bar select:focus { border-color: var(--primary); }
+    .filter-bar select option { background: var(--card); }
+
+    /* ── AVATAR ── */
+    .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--primary-dim); border: 1px solid var(--primary-border); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .student-cell { display: flex; align-items: center; gap: 10px; }
+    .student-cell .name { font-weight: 600; font-size: 13px; }
+
+    /* ── MODAL ── */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.72); backdrop-filter: blur(5px); z-index: 200; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--card); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 26px; width: 480px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 28px 72px rgba(0,0,0,0.65); }
+    .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    .modal-sub   { font-size: 12px; color: var(--text-muted); margin-bottom: 20px; }
+    .form-group  { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 11px; font-weight: 600; margin-bottom: 6px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .form-group input, .form-group select { width: 100%; padding: 9px 12px; border: 1px solid var(--border-strong); border-radius: 8px; font-size: 13.5px; font-family: 'Cairo', sans-serif; color: var(--text); background: var(--surface); transition: border-color 0.15s; outline: none; }
+    .form-group input:focus, .form-group select:focus { border-color: var(--primary); }
+    .form-group select option { background: var(--surface); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+    /* ── TOAST ── */
+    .toast { position: fixed; bottom: 20px; left: 20px; background: var(--card); border: 1px solid var(--border-strong); color: var(--text); padding: 11px 16px; border-radius: var(--radius); font-size: 13px; font-weight: 500; z-index: 999; transform: translateY(20px); opacity: 0; transition: all 0.25s cubic-bezier(0.16,1,0.3,1); display: flex; align-items: center; gap: 8px; box-shadow: 0 8px 28px rgba(0,0,0,0.5); }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { border-color: rgba(16,185,129,0.4); }
+    .toast.success::before { content: '✓'; color: var(--green); font-weight: 700; }
+    .toast.error { border-color: rgba(239,68,68,0.4); }
+    .toast.error::before { content: '✕'; color: var(--red); font-weight: 700; }
+
+    /* ── EMPTY ── */
+    .empty-state { text-align: center; padding: 44px 24px; }
+    .empty-icon  { font-size: 34px; margin-bottom: 10px; opacity: 0.35; }
+    .empty-title { font-size: 14px; font-weight: 600; color: var(--text-muted); }
+    .empty-sub   { font-size: 12px; color: var(--text-subtle); margin-top: 4px; }
+    .loading     { text-align: center; padding: 32px; color: var(--text-subtle); font-size: 13px; }
+
+    code.tag { background: rgba(255,255,255,0.05); border: 1px solid var(--border-strong); border-radius: 5px; padding: 2px 8px; font-size: 11px; font-family: 'Space Grotesk', monospace; color: var(--text-muted); }
+
+    /* ── ROLE BADGE ── */
+    .role-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 5px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+    .role-badge.admin   { background: rgba(245,158,11,0.15); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
+    .role-badge.student { background: var(--primary-dim); color: var(--primary); border: 1px solid var(--primary-border); }
+
+    /* Hide admin-only elements for students */
+    body.role-student .admin-only { display: none !important; }
+    body.role-student .student-only { display: block !important; }
+    body.role-admin   .student-only { display: none !important; }
+    .student-only { display: none; }
+
+
+    /* ── GPA SUMMARY ── */
+    .summary-modal { width: 580px; }
+    .gpa-hero { background: linear-gradient(135deg, rgba(99,102,241,0.14), rgba(59,130,246,0.08)); border: 1px solid rgba(99,102,241,0.2); border-radius: var(--radius-lg); padding: 20px; display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+    .gpa-avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--primary-dim); border: 2px solid var(--primary-border); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: var(--primary); flex-shrink: 0; }
+    .gpa-info { flex: 1; }
+    .gpa-info h4 { font-size: 17px; font-weight: 700; }
+    .gpa-info p  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .gpa-score   { text-align: center; }
+    .score-val   { font-family: 'Space Grotesk', sans-serif; font-size: 40px; font-weight: 700; color: var(--primary); line-height: 1; }
+    .score-label { font-size: 10px; color: var(--text-muted); margin-top: 3px; }
+    .summary-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
+    .summary-stat  { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; text-align: center; }
+    .summary-stat .val { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; color: var(--green); }
+    .summary-stat .lbl { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .grade-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 8px; background: var(--surface); transition: background 0.15s; }
+    .grade-row:hover { background: var(--card-hover); }
+    .grade-row-info .course-name { font-size: 13px; font-weight: 600; }
+    .grade-row-info .course-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .grade-row-score { display: flex; align-items: center; gap: 12px; }
+    .grade-row-bar  { width: 70px; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+    .grade-row-bar-fill { height: 100%; border-radius: 2px; }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">🎓</div>
+      <div>
+        <div class="brand-name">GradeOS</div>
+        <div class="brand-sub">نظام إدارة الدرجات</div>
+      </div>
+    </div>
+    <nav>
+      <div class="nav-section">القائمة</div>
+      <button class="nav-item active" onclick="showPage('dashboard',this)"><span class="nav-icon">📊</span> لوحة المعلومات</button>
+      <!-- Admin: sees all students | Student: sees "ملفي الشخصي" -->
+      <button class="nav-item admin-only" onclick="showPage('students',this)"><span class="nav-icon">👨‍🎓</span> الطلاب</button>
+      <button class="nav-item student-only" onclick="showPage('myprofile',this)"><span class="nav-icon">👤</span> ملفي الشخصي</button>
+      <button class="nav-item" onclick="showPage('courses',this)"><span class="nav-icon">📚</span> المواد الدراسية</button>
+      <button class="nav-item" onclick="showPage('grades',this)"><span class="nav-icon">📝</span> الدرجات</button>
+    </nav>
+
+    <div class="sidebar-user">
+      <div class="user-row">
+        <div class="user-avatar" id="sidebar-avatar">--</div>
+        <div>
+          <div class="user-name"  id="sidebar-name">...</div>
+          <div class="user-email" id="sidebar-email">...</div>
+          <div style="margin-top:4px"><span class="role-badge" id="sidebar-role-badge">—</span></div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="logout()">🚪 تسجيل الخروج</button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- Dashboard -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div><div class="page-title">لوحة المعلومات</div><div class="page-sub">نظرة عامة على النظام</div></div>
+      </div>
+      <div class="page-content">
+        <div class="stats-row">
+          <div class="stat-card green"><div class="stat-icon">👨‍🎓</div><div class="stat-value" id="stat-students">—</div><div class="stat-label">إجمالي الطلاب</div></div>
+          <div class="stat-card purple"><div class="stat-icon">📚</div><div class="stat-value" id="stat-courses">—</div><div class="stat-label">المواد الدراسية</div></div>
+          <div class="stat-card amber"><div class="stat-icon">📝</div><div class="stat-value" id="stat-grades">—</div><div class="stat-label">درجات مسجلة</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>آخر الطلاب المضافين</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>الطالب</th><th>البريد الإلكتروني</th><th>القسم</th><th>العمر</th></tr></thead>
+              <tbody id="dashboard-students-table"><tr><td colspan="4" class="loading">جاري التحميل...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Students -->
+    <div class="page" id="page-students">
+      <div class="page-header">
+        <div><div class="page-title">الطلاب</div><div class="page-sub">إدارة بيانات الطلاب المسجلين</div></div>
+        <button class="btn btn-primary admin-only" onclick="openModal('student')">+ طالب جديد</button>
+      </div>
+      <div class="page-content">
+        <div class="filter-bar">
+          <input type="text" id="filter-student-name" placeholder="🔍  بحث بالاسم..." oninput="loadStudents()" />
+          <select id="filter-student-dept" onchange="loadStudents()">
+            <option value="">جميع الأقسام</option>
+            <option value="CS">CS</option><option value="IT">IT</option>
+            <option value="Engineering">Engineering</option><option value="Business">Business</option><option value="Science">Science</option>
+          </select>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>الطالب</th><th>البريد</th><th>القسم</th><th>العمر</th><th>الهاتف</th><th>إجراءات</th></tr></thead>
+              <tbody id="students-table"><tr><td colspan="6" class="loading">جاري التحميل...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Courses -->
+    <div class="page" id="page-courses">
+      <div class="page-header">
+        <div><div class="page-title">المواد الدراسية</div><div class="page-sub">إدارة المقررات والساعات المعتمدة</div></div>
+        <button class="btn btn-primary admin-only" onclick="openModal('course')">+ مادة جديدة</button>
+      </div>
+      <div class="page-content">
+        <div class="filter-bar">
+          <select id="filter-course-dept" onchange="loadCourses()">
+            <option value="">جميع الأقسام</option>
+            <option value="CS">CS</option><option value="IT">IT</option>
+            <option value="Engineering">Engineering</option><option value="Business">Business</option><option value="Science">Science</option>
+          </select>
+          <select id="filter-course-credits" onchange="loadCourses()">
+            <option value="">كل الساعات</option>
+            <option value="1">1 ساعة</option><option value="2">2 ساعات</option>
+            <option value="3">3 ساعات</option><option value="4">4 ساعات</option>
+          </select>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>المادة</th><th>الكود</th><th>القسم</th><th>الساعات</th><th>الوصف</th><th>إجراءات</th></tr></thead>
+              <tbody id="courses-table"><tr><td colspan="6" class="loading">جاري التحميل...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grades -->
+    <div class="page" id="page-grades">
+      <div class="page-header">
+        <div><div class="page-title">الدرجات</div><div class="page-sub">إدارة درجات الطلاب وتقاريرهم الأكاديمية</div></div>
+        <button class="btn btn-primary admin-only" onclick="openModal('grade')">+ درجة جديدة</button>
+      </div>
+      <div class="page-content">
+        <div class="filter-bar">
+          <select id="filter-grade-semester" onchange="loadGrades()">
+            <option value="">كل الفصول</option>
+            <option value="1">الفصل الأول</option><option value="2">الفصل الثاني</option>
+          </select>
+          <input type="number" id="filter-grade-year" placeholder="السنة الدراسية" oninput="loadGrades()" style="width:150px" />
+          <input type="number" id="filter-grade-min" placeholder="من" oninput="loadGrades()" style="width:90px" />
+          <input type="number" id="filter-grade-max" placeholder="إلى" oninput="loadGrades()" style="width:90px" />
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>الطالب</th><th>المادة</th><th>الدرجة</th><th>الفصل</th><th>السنة</th><th>إجراءات</th></tr></thead>
+              <tbody id="grades-table"><tr><td colspan="6" class="loading">جاري التحميل...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- My Profile (student-only view) -->
+    <div class="page" id="page-myprofile">
+      <div class="page-header">
+        <div><div class="page-title">ملفي الشخصي</div><div class="page-sub">بياناتك الأكاديمية الشخصية</div></div>
+      </div>
+      <div class="page-content">
+        <!-- Profile Card -->
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-header"><h3>البيانات الشخصية</h3></div>
+          <div style="padding:24px;display:flex;align-items:center;gap:20px;">
+            <div style="width:64px;height:64px;border-radius:50%;background:var(--primary-dim);border:2px solid var(--primary-border);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:var(--primary);flex-shrink:0" id="profile-avatar">--</div>
+            <div style="flex:1">
+              <div style="font-size:20px;font-weight:700" id="profile-name">—</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-top:3px" id="profile-email">—</div>
+              <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+                <span class="badge badge-green" id="profile-dept">—</span>
+                <span class="badge badge-amber" id="profile-age">—</span>
+                <span class="role-badge student" id="profile-role">student</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- GPA Stats -->
+        <div class="stats-row" id="profile-stats-row">
+          <div class="stat-card green"><div class="stat-icon">📚</div><div class="stat-value" id="profile-total">—</div><div class="stat-label">إجمالي المواد</div></div>
+          <div class="stat-card purple"><div class="stat-icon">📊</div><div class="stat-value" id="profile-avg">—</div><div class="stat-label">متوسط الدرجات</div></div>
+          <div class="stat-card amber"><div class="stat-icon">🏆</div><div class="stat-value" id="profile-highest">—</div><div class="stat-label">أعلى درجة</div></div>
+        </div>
+        <!-- Grades list -->
+        <div class="card">
+          <div class="card-header"><h3>درجاتي</h3></div>
+          <div id="profile-grades-list" style="padding:16px"><div class="loading">جاري التحميل...</div></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Student Modal -->
+<div class="modal-overlay" id="modal-student">
+  <div class="modal">
+    <div class="modal-title" id="modal-student-title">طالب جديد</div>
+    <div class="modal-sub">أدخل بيانات الطالب</div>
+    <input type="hidden" id="student-id" />
+    <div class="form-row">
+      <div class="form-group"><label>الاسم الكامل *</label><input type="text" id="s-name" placeholder="أحمد محمد" /></div>
+      <div class="form-group"><label>البريد الإلكتروني *</label><input type="email" id="s-email" placeholder="ahmed@example.com" /></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>كلمة المرور *</label><input type="password" id="s-password" placeholder="6 أحرف على الأقل" /></div>
+      <div class="form-group"><label>العمر *</label><input type="number" id="s-age" placeholder="21" min="16" max="60" /></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>القسم *</label>
+        <select id="s-department">
+          <option value="">— اختر —</option>
+          <option value="CS">CS</option><option value="IT">IT</option>
+          <option value="Engineering">Engineering</option><option value="Business">Business</option><option value="Science">Science</option>
+        </select>
+      </div>
+      <div class="form-group"><label>رقم الهاتف</label><input type="text" id="s-phone" placeholder="+201012345678" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('student')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveStudent()">حفظ الطالب</button>
+    </div>
+  </div>
+</div>
+
+<!-- Course Modal -->
+<div class="modal-overlay" id="modal-course">
+  <div class="modal">
+    <div class="modal-title" id="modal-course-title">مادة جديدة</div>
+    <div class="modal-sub">أضف مقررًا دراسيًا جديدًا</div>
+    <input type="hidden" id="course-id" />
+    <div class="form-row">
+      <div class="form-group"><label>اسم المادة *</label><input type="text" id="c-name" placeholder="Data Structures" /></div>
+      <div class="form-group"><label>كود المادة *</label><input type="text" id="c-code" placeholder="CS301" /></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>القسم *</label>
+        <select id="c-department">
+          <option value="">— اختر —</option>
+          <option value="CS">CS</option><option value="IT">IT</option>
+          <option value="Engineering">Engineering</option><option value="Business">Business</option><option value="Science">Science</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>الساعات المعتمدة *</label>
+        <select id="c-credits">
+          <option value="">— اختر —</option>
+          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+          <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>الوصف</label><input type="text" id="c-description" placeholder="وصف مختصر للمادة..." /></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('course')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveCourse()">حفظ المادة</button>
+    </div>
+  </div>
+</div>
+
+<!-- Grade Modal -->
+<div class="modal-overlay" id="modal-grade">
+  <div class="modal">
+    <div class="modal-title" id="modal-grade-title">تسجيل درجة</div>
+    <div class="modal-sub">أدخل درجة الطالب في المادة</div>
+    <input type="hidden" id="grade-id" />
+    <div class="form-group"><label>الطالب *</label><select id="g-student"></select></div>
+    <div class="form-group"><label>المادة الدراسية *</label><select id="g-course"></select></div>
+    <div class="form-row">
+      <div class="form-group"><label>الدرجة (0 – 100) *</label><input type="number" id="g-grade" min="0" max="100" placeholder="85" /></div>
+      <div class="form-group">
+        <label>الفصل الدراسي *</label>
+        <select id="g-semester"><option value="">— اختر —</option><option value="1">الفصل الأول</option><option value="2">الفصل الثاني</option></select>
+      </div>
+    </div>
+    <div class="form-group"><label>السنة الدراسية *</label><input type="number" id="g-year" placeholder="2024" min="2000" max="2100" /></div>
+    <div class="form-group"><label>ملاحظات</label><input type="text" id="g-notes" placeholder="ملاحظات اختيارية..." /></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('grade')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveGrade()">حفظ الدرجة</button>
+    </div>
+  </div>
+</div>
+
+<!-- GPA Summary Modal -->
+<div class="modal-overlay" id="modal-summary">
+  <div class="modal summary-modal">
+    <div class="gpa-hero">
+      <div class="gpa-avatar" id="summary-avatar">--</div>
+      <div class="gpa-info">
+        <h4 id="summary-name">جاري التحميل...</h4>
+        <p id="summary-dept"></p><p id="summary-email"></p>
+      </div>
+      <div class="gpa-score">
+        <div class="score-val" id="summary-avg">—</div>
+        <div class="score-label">متوسط الدرجات</div>
+      </div>
+    </div>
+    <div class="summary-stats">
+      <div class="summary-stat"><div class="val" id="summary-total">—</div><div class="lbl">إجمالي المواد</div></div>
+      <div class="summary-stat"><div class="val" id="summary-highest">—</div><div class="lbl">أعلى درجة</div></div>
+      <div class="summary-stat"><div class="val" id="summary-lowest">—</div><div class="lbl">أدنى درجة</div></div>
+    </div>
+    <div style="font-size:11px;font-weight:600;color:var(--text-subtle);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px">تفاصيل المواد</div>
+    <div id="summary-grades-list"><div class="loading">جاري التحميل...</div></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('summary')">إغلاق</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = 'http://localhost:3000/api';
+
+  // ── Auth guard ──────────────────────────────────────
+  const token = localStorage.getItem('gradeos_token');
+  if (!token) { window.location.href = 'login.html'; }
+
+  const currentUser = JSON.parse(localStorage.getItem('gradeos_user') || '{}');
+  const isAdmin = currentUser.role === 'admin';
+
+  function initUserUI() {
+    const name  = currentUser.name  || 'مستخدم';
+    const email = currentUser.email || '';
+    const role  = currentUser.role  || 'student';
+
+    document.getElementById('sidebar-name').textContent  = name;
+    document.getElementById('sidebar-email').textContent = email;
+    document.getElementById('sidebar-avatar').textContent =
+      name.split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase();
+
+    // Role badge in sidebar
+    const badge = document.getElementById('sidebar-role-badge');
+    badge.textContent = role === 'admin' ? '👑 Admin' : '🎓 Student';
+    badge.className = `role-badge ${role}`;
+
+    // Apply role class to body — CSS hides/shows admin-only / student-only elements
+    document.body.classList.add(`role-${role}`);
+  }
+
+  initUserUI();
+
+  function logout() {
+    localStorage.removeItem('gradeos_token');
+    localStorage.removeItem('gradeos_user');
+    window.location.href = 'login.html';
+  }
+
+  // ── Authenticated fetch helper ───────────────────────
+  function authHeaders() {
+    return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+  }
+
+  async function apiFetch(url, options = {}) {
+    const res = await fetch(url, {
+      ...options,
+      headers: { ...authHeaders(), ...(options.headers || {}) },
+    });
+    if (res.status === 401) {
+      logout(); // token expired
+      return null;
+    }
+    return res;
+  }
+
+  // ── Helpers ──────────────────────────────────────────
+  function showPage(name, el) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    if (el) el.classList.add('active');
+    if (name === 'dashboard') loadDashboard();
+    if (name === 'students')  loadStudents();
+    if (name === 'courses')   loadCourses();
+    if (name === 'grades')    loadGrades();
+    if (name === 'myprofile') loadMyProfile();
+  }
+
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + type + ' show';
+    setTimeout(() => t.className = 'toast', 3200);
+  }
+
+  function deptBadge(dept) {
+    const map = { CS: 'green', IT: 'purple', Engineering: 'amber', Business: 'blue', Science: 'red' };
+    return `<span class="badge badge-${map[dept] || 'green'}">${dept}</span>`;
+  }
+
+  function gradeColor(g) {
+    if (g >= 90) return 'var(--green)';
+    if (g >= 80) return 'var(--primary)';
+    if (g >= 70) return 'var(--amber)';
+    if (g >= 60) return '#F97316';
+    return 'var(--red)';
+  }
+
+  function letterGrade(g) {
+    if (g >= 90) return 'A'; if (g >= 80) return 'B';
+    if (g >= 70) return 'C'; if (g >= 60) return 'D'; return 'F';
+  }
+
+  function initials(name) {
+    return (name||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  }
+
+  function gradeCell(score) {
+    const col = gradeColor(score), letter = letterGrade(score);
+    return `<div class="grade-cell">
+      <span class="grade-num" style="color:${col}">${score}</span>
+      <div class="grade-bar-container"><div class="grade-bar-fill" style="width:${score}%;background:${col}"></div></div>
+      <span class="grade-letter" style="background:${col}1A;color:${col}">${letter}</span>
+    </div>`;
+  }
+
+  // ── Modal helpers ─────────────────────────────────────
+  function openModal(type, data = null) {
+    if (type === 'grade') loadSelectOptions();
+    if (type === 'student') {
+      document.getElementById('modal-student-title').textContent = data ? 'تعديل بيانات الطالب' : 'طالب جديد';
+      document.getElementById('student-id').value = data?._id || '';
+      document.getElementById('s-name').value     = data?.name || '';
+      document.getElementById('s-email').value    = data?.email || '';
+      document.getElementById('s-password').value = '';
+      document.getElementById('s-age').value      = data?.age || '';
+      document.getElementById('s-phone').value    = data?.phone || '';
+      document.getElementById('s-department').value = data?.department || '';
+      // hide password field when editing
+      const pwGroup = document.getElementById('s-password').closest('.form-group');
+      pwGroup.style.display = data ? 'none' : '';
+    }
+    if (type === 'course') {
+      document.getElementById('modal-course-title').textContent = data ? 'تعديل المادة' : 'مادة جديدة';
+      document.getElementById('course-id').value      = data?._id || '';
+      document.getElementById('c-name').value         = data?.name || '';
+      document.getElementById('c-code').value         = data?.code || '';
+      document.getElementById('c-department').value   = data?.department || '';
+      document.getElementById('c-credits').value      = data?.credits || '';
+      document.getElementById('c-description').value  = data?.description || '';
+    }
+    if (type === 'grade') {
+      document.getElementById('modal-grade-title').textContent = data ? 'تعديل الدرجة' : 'تسجيل درجة';
+      document.getElementById('grade-id').value    = data?._id || '';
+      document.getElementById('g-grade').value     = data?.grade || '';
+      document.getElementById('g-semester').value  = data?.semester || '';
+      document.getElementById('g-year').value      = data?.year || '';
+      document.getElementById('g-notes').value     = data?.notes || '';
+      if (data) setTimeout(() => {
+        document.getElementById('g-student').value = data.student?._id || '';
+        document.getElementById('g-course').value  = data.course?._id  || '';
+      }, 300);
+    }
+    document.getElementById('modal-' + type).classList.add('open');
+  }
+
+  function closeModal(type) {
+    document.getElementById('modal-' + type).classList.remove('open');
+  }
+
+  // ── Dashboard ─────────────────────────────────────────
+  async function loadDashboard() {
+    try {
+      if (isAdmin) {
+        // Admin: full system stats
+        const [sRes, cRes, gRes] = await Promise.all([
+          apiFetch(`${API}/students`), apiFetch(`${API}/courses`), apiFetch(`${API}/grades`)
+        ]);
+        if (!sRes) return;
+        const [s, c, g] = await Promise.all([sRes.json(), cRes.json(), gRes.json()]);
+        document.getElementById('stat-students').textContent = s.count ?? 0;
+        document.getElementById('stat-courses').textContent  = c.count ?? 0;
+        document.getElementById('stat-grades').textContent   = g.count ?? 0;
+        const tbody = document.getElementById('dashboard-students-table');
+        const list  = (s.data || []).slice(0, 5);
+        if (!list.length) {
+          tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">👨‍🎓</div><div class="empty-title">لا يوجد طلاب بعد</div></div></td></tr>`;
+          return;
+        }
+        tbody.innerHTML = list.map(st => `<tr>
+          <td><div class="student-cell"><div class="avatar">${initials(st.name)}</div><span class="name">${st.name}</span></div></td>
+          <td style="color:var(--text-muted);font-size:12px">${st.email}</td>
+          <td>${deptBadge(st.department)}</td>
+          <td style="color:var(--text-muted)">${st.age}</td>
+        </tr>`).join('');
+      } else {
+        // Student: show their own summary on dashboard
+        const [cRes, summaryRes] = await Promise.all([
+          apiFetch(`${API}/courses`),
+          apiFetch(`${API}/grades/student/${currentUser._id}/summary`)
+        ]);
+        if (!cRes) return;
+        const [c, summaryData] = await Promise.all([cRes.json(), summaryRes?.json()]);
+        const summary = summaryData?.data || {};
+        document.getElementById('stat-students').textContent = summary.average ?? '—';
+        document.getElementById('stat-courses').textContent  = c.count ?? 0;
+        document.getElementById('stat-grades').textContent   = summary.totalCourses ?? 0;
+
+        // Relabel stats for student context
+        document.querySelector('#stat-students').closest('.stat-card').querySelector('.stat-label').textContent = 'متوسط درجاتي';
+        document.querySelector('#stat-grades').closest('.stat-card').querySelector('.stat-label').textContent = 'موادي المسجلة';
+
+        // Show recent grades in dashboard table
+        const tbody = document.getElementById('dashboard-students-table');
+        const grades = (summary.grades || []).slice(0, 5);
+        if (!grades.length) {
+          tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">📝</div><div class="empty-title">لا يوجد درجات بعد</div></div></td></tr>`;
+          return;
+        }
+        // Change table headers for student view
+        const thead = tbody.closest('table').querySelector('thead tr');
+        thead.innerHTML = '<th>المادة</th><th>الكود</th><th>الدرجة</th><th>الفصل</th>';
+        tbody.innerHTML = grades.map(g => `<tr>
+          <td style="font-weight:600">${g.course?.name || '—'}</td>
+          <td><code class="tag">${g.course?.code || '—'}</code></td>
+          <td>${gradeCell(g.grade)}</td>
+          <td><span class="badge badge-blue">الفصل ${g.semester}</span></td>
+        </tr>`).join('');
+      }
+    } catch (e) { showToast('تعذّر الاتصال بالـ API', 'error'); }
+  }
+
+  // ── Students ──────────────────────────────────────────
+  async function loadStudents() {
+    const name = document.getElementById('filter-student-name')?.value || '';
+    const dept = document.getElementById('filter-student-dept')?.value || '';
+    let url = `${API}/students?`;
+    if (name) url += `name=${name}&`;
+    if (dept) url += `department=${dept}`;
+    const tbody = document.getElementById('students-table');
+    tbody.innerHTML = `<tr><td colspan="6" class="loading">جاري التحميل...</td></tr>`;
+    try {
+      const res = await apiFetch(url);
+      if (!res) return;
+      const { data } = await res.json();
+      if (!data?.length) {
+        tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">👨‍🎓</div><div class="empty-title">لا يوجد طلاب</div></div></td></tr>`;
+        return;
+      }
+      tbody.innerHTML = data.map(st => `<tr>
+        <td><div class="student-cell"><div class="avatar">${initials(st.name)}</div><span class="name">${st.name}</span></div></td>
+        <td style="color:var(--text-muted);font-size:12px">${st.email}</td>
+        <td>${deptBadge(st.department)}</td>
+        <td style="color:var(--text-muted)">${st.age}</td>
+        <td style="color:var(--text-muted);font-size:12px">${st.phone || '—'}</td>
+        <td>
+          <button class="btn btn-ghost btn-sm" onclick="showStudentSummary('${st._id}')">📊 GPA</button>
+          ${isAdmin ? `<button class="btn btn-ghost btn-sm" onclick='openModal("student",${JSON.stringify(st)})'>✏️</button>
+          <button class="btn btn-danger-ghost btn-sm" onclick="deleteItem('students','${st._id}',loadStudents)">🗑️</button>` : ''}
+        </td>
+      </tr>`).join('');
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="6" style="color:var(--red);text-align:center;padding:20px">تعذّر الاتصال بالـ API</td></tr>`;
+    }
+  }
+
+  async function saveStudent() {
+    const id = document.getElementById('student-id').value;
+    const body = {
+      name:       document.getElementById('s-name').value,
+      email:      document.getElementById('s-email').value,
+      age:        Number(document.getElementById('s-age').value),
+      department: document.getElementById('s-department').value,
+      phone:      document.getElementById('s-phone').value || undefined,
+    };
+    // Only include password on create
+    if (!id) body.password = document.getElementById('s-password').value;
+
+    const method = id ? 'PUT' : 'POST';
+    const url    = id ? `${API}/students/${id}` : `${API}/students`;
+    try {
+      const res  = await apiFetch(url, { method, body: JSON.stringify(body) });
+      if (!res) return;
+      const data = await res.json();
+      if (!res.ok) { showToast(data.errors?.[0]?.message || data.message, 'error'); return; }
+      showToast(id ? 'تم تعديل بيانات الطالب' : 'تمت إضافة الطالب بنجاح');
+      closeModal('student'); loadStudents();
+    } catch (e) { showToast('تعذّر الاتصال', 'error'); }
+  }
+
+  // ── Courses ───────────────────────────────────────────
+  async function loadCourses() {
+    const dept    = document.getElementById('filter-course-dept')?.value || '';
+    const credits = document.getElementById('filter-course-credits')?.value || '';
+    let url = `${API}/courses?`;
+    if (dept)    url += `department=${dept}&`;
+    if (credits) url += `credits=${credits}`;
+    const tbody = document.getElementById('courses-table');
+    tbody.innerHTML = `<tr><td colspan="6" class="loading">جاري التحميل...</td></tr>`;
+    try {
+      const res = await apiFetch(url);
+      if (!res) return;
+      const { data } = await res.json();
+      if (!data?.length) {
+        tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📚</div><div class="empty-title">لا يوجد مواد</div></div></td></tr>`;
+        return;
+      }
+      tbody.innerHTML = data.map(c => `<tr>
+        <td style="font-weight:600">${c.name}</td>
+        <td><code class="tag">${c.code}</code></td>
+        <td>${deptBadge(c.department)}</td>
+        <td><span class="badge badge-purple">${c.credits} ساعات</span></td>
+        <td style="color:var(--text-muted);font-size:12px">${c.description || '—'}</td>
+        <td>
+          ${isAdmin ? `<button class="btn btn-ghost btn-sm" onclick='openModal("course",${JSON.stringify(c)})'>✏️</button>
+          <button class="btn btn-danger-ghost btn-sm" onclick="deleteItem('courses','${c._id}',loadCourses)">🗑️</button>` : ''}
+        </td>
+      </tr>`).join('');
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="6" style="color:var(--red);text-align:center;padding:20px">تعذّر الاتصال</td></tr>`;
+    }
+  }
+
+  async function saveCourse() {
+    const id   = document.getElementById('course-id').value;
+    const body = {
+      name:        document.getElementById('c-name').value,
+      code:        document.getElementById('c-code').value,
+      department:  document.getElementById('c-department').value,
+      credits:     Number(document.getElementById('c-credits').value),
+      description: document.getElementById('c-description').value || undefined,
+    };
+    const method = id ? 'PUT' : 'POST';
+    const url    = id ? `${API}/courses/${id}` : `${API}/courses`;
+    try {
+      const res  = await apiFetch(url, { method, body: JSON.stringify(body) });
+      if (!res) return;
+      const data = await res.json();
+      if (!res.ok) { showToast(data.errors?.[0]?.message || data.message, 'error'); return; }
+      showToast(id ? 'تم تعديل المادة' : 'تمت إضافة المادة بنجاح');
+      closeModal('course'); loadCourses();
+    } catch (e) { showToast('تعذّر الاتصال', 'error'); }
+  }
+
+  // ── Grades ────────────────────────────────────────────
+  async function loadGrades() {
+    const semester = document.getElementById('filter-grade-semester')?.value || '';
+    const year     = document.getElementById('filter-grade-year')?.value     || '';
+    const min      = document.getElementById('filter-grade-min')?.value      || '';
+    const max      = document.getElementById('filter-grade-max')?.value      || '';
+    let url = `${API}/grades?`;
+    if (semester) url += `semester=${semester}&`;
+    if (year)     url += `year=${year}&`;
+    if (min)      url += `minGrade=${min}&`;
+    if (max)      url += `maxGrade=${max}`;
+    const tbody = document.getElementById('grades-table');
+    tbody.innerHTML = `<tr><td colspan="6" class="loading">جاري التحميل...</td></tr>`;
+    try {
+      const res = await apiFetch(url);
+      if (!res) return;
+      const { data } = await res.json();
+      if (!data?.length) {
+        tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📝</div><div class="empty-title">لا يوجد درجات مسجلة</div></div></td></tr>`;
+        return;
+      }
+      tbody.innerHTML = data.map(g => `<tr>
+        <td><div class="student-cell"><div class="avatar">${initials(g.student?.name)}</div><span class="name">${g.student?.name||'—'}</span></div></td>
+        <td>
+          <div style="font-weight:600;font-size:13px">${g.course?.name||'—'}</div>
+          <code class="tag" style="margin-top:3px;display:inline-block">${g.course?.code||''}</code>
+        </td>
+        <td>${gradeCell(g.grade)}</td>
+        <td><span class="badge badge-blue">الفصل ${g.semester}</span></td>
+        <td style="color:var(--text-muted)">${g.year}</td>
+        <td>
+          ${isAdmin ? `<button class="btn btn-ghost btn-sm" onclick='openModal("grade",${JSON.stringify(g)})'>✏️</button>
+          <button class="btn btn-danger-ghost btn-sm" onclick="deleteItem('grades','${g._id}',loadGrades)">🗑️</button>` : ''}
+        </td>
+      </tr>`).join('');
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="6" style="color:var(--red);text-align:center;padding:20px">تعذّر الاتصال</td></tr>`;
+    }
+  }
+
+  async function loadSelectOptions() {
+    try {
+      const [sRes, cRes] = await Promise.all([apiFetch(`${API}/students`), apiFetch(`${API}/courses`)]);
+      if (!sRes) return;
+      const [s, c] = await Promise.all([sRes.json(), cRes.json()]);
+      document.getElementById('g-student').innerHTML = '<option value="">— اختر الطالب —</option>' + (s.data||[]).map(st=>`<option value="${st._id}">${st.name}</option>`).join('');
+      document.getElementById('g-course').innerHTML  = '<option value="">— اختر المادة —</option>'  + (c.data||[]).map(co=>`<option value="${co._id}">${co.name} (${co.code})</option>`).join('');
+    } catch (e) {}
+  }
+
+  async function saveGrade() {
+    const id   = document.getElementById('grade-id').value;
+    const body = {
+      student:  document.getElementById('g-student').value,
+      course:   document.getElementById('g-course').value,
+      grade:    Number(document.getElementById('g-grade').value),
+      semester: Number(document.getElementById('g-semester').value),
+      year:     Number(document.getElementById('g-year').value),
+      notes:    document.getElementById('g-notes').value || undefined,
+    };
+    const method = id ? 'PUT' : 'POST';
+    const url    = id ? `${API}/grades/${id}` : `${API}/grades`;
+    try {
+      const res  = await apiFetch(url, { method, body: JSON.stringify(body) });
+      if (!res) return;
+      const data = await res.json();
+      if (!res.ok) { showToast(data.errors?.[0]?.message || data.message, 'error'); return; }
+      showToast(id ? 'تم تعديل الدرجة' : 'تمت إضافة الدرجة بنجاح');
+      closeModal('grade'); loadGrades();
+    } catch (e) { showToast('تعذّر الاتصال', 'error'); }
+  }
+
+  // ── GPA Summary ───────────────────────────────────────
+  async function showStudentSummary(studentId) {
+    document.getElementById('summary-name').textContent  = 'جاري التحميل...';
+    document.getElementById('summary-dept').textContent  = '';
+    document.getElementById('summary-email').textContent = '';
+    document.getElementById('summary-avatar').textContent = '...';
+    document.getElementById('summary-avg').textContent    = '—';
+    document.getElementById('summary-total').textContent  = '—';
+    document.getElementById('summary-highest').textContent = '—';
+    document.getElementById('summary-lowest').textContent  = '—';
+    document.getElementById('summary-grades-list').innerHTML = '<div class="loading">جاري التحميل...</div>';
+    document.getElementById('modal-summary').classList.add('open');
+    try {
+      const res = await apiFetch(`${API}/grades/student/${studentId}/summary`);
+      if (!res) return;
+      const { data } = await res.json();
+      const st = data.student, grades = data.grades || [];
+      document.getElementById('summary-avatar').textContent = initials(st.name);
+      document.getElementById('summary-name').textContent   = st.name;
+      document.getElementById('summary-dept').textContent   = '📚 ' + st.department;
+      document.getElementById('summary-email').textContent  = '✉️ ' + st.email;
+      document.getElementById('summary-avg').textContent    = data.average || 0;
+      document.getElementById('summary-total').textContent  = data.totalCourses;
+      if (grades.length > 0) {
+        const scores = grades.map(g => g.grade);
+        document.getElementById('summary-highest').textContent = Math.max(...scores);
+        document.getElementById('summary-lowest').textContent  = Math.min(...scores);
+      }
+      const list = document.getElementById('summary-grades-list');
+      if (!grades.length) {
+        list.innerHTML = '<div class="empty-state"><div class="empty-icon">📝</div><div class="empty-title">لا يوجد درجات مسجلة</div></div>';
+        return;
+      }
+      list.innerHTML = grades.map(g => {
+        const col = gradeColor(g.grade), letter = letterGrade(g.grade);
+        return `<div class="grade-row">
+          <div class="grade-row-info">
+            <div class="course-name">${g.course?.name||'—'}</div>
+            <div class="course-meta">${g.course?.code||''} · الفصل ${g.semester} – ${g.year}</div>
+          </div>
+          <div class="grade-row-score">
+            <div class="grade-row-bar"><div class="grade-row-bar-fill" style="width:${g.grade}%;background:${col}"></div></div>
+            <span style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:${col};min-width:36px;text-align:center">${g.grade}</span>
+            <span class="grade-letter" style="background:${col}1A;color:${col}">${letter}</span>
+          </div>
+        </div>`;
+      }).join('');
+    } catch (e) {
+      document.getElementById('summary-grades-list').innerHTML = '<p style="color:var(--red);text-align:center;padding:16px">تعذّر تحميل البيانات</p>';
+    }
+  }
+
+  // ── Delete ────────────────────────────────────────────
+  async function deleteItem(resource, id, reload) {
+    if (!confirm('هل أنت متأكد من الحذف؟')) return;
+    try {
+      const res = await apiFetch(`${API}/${resource}/${id}`, { method: 'DELETE' });
+      if (!res) return;
+      if (!res.ok) throw new Error();
+      showToast('تم الحذف بنجاح');
+      reload();
+    } catch (e) { showToast('فشل الحذف', 'error'); }
+  }
+
+  // ── My Profile (student view) ────────────────────────
+  async function loadMyProfile() {
+    const id = currentUser._id;
+    if (!id) return;
+    // Set static fields from cached user immediately
+    document.getElementById('profile-avatar').textContent = initials(currentUser.name || '?');
+    document.getElementById('profile-name').textContent   = currentUser.name || '—';
+    document.getElementById('profile-email').textContent  = currentUser.email || '—';
+    document.getElementById('profile-dept').textContent   = currentUser.department || '—';
+    document.getElementById('profile-age').textContent    = currentUser.age ? `${currentUser.age} سنة` : '—';
+
+    // Load GPA summary
+    try {
+      const res = await apiFetch(`${API}/grades/student/${id}/summary`);
+      if (!res) return;
+      const { data } = await res.json();
+      const grades = data.grades || [];
+      document.getElementById('profile-total').textContent   = data.totalCourses ?? '—';
+      document.getElementById('profile-avg').textContent     = data.average ?? '—';
+      const scores = grades.map(g => g.grade);
+      document.getElementById('profile-highest').textContent = scores.length ? Math.max(...scores) : '—';
+
+      const list = document.getElementById('profile-grades-list');
+      if (!grades.length) {
+        list.innerHTML = '<div class="empty-state"><div class="empty-icon">📝</div><div class="empty-title">لا يوجد درجات مسجلة بعد</div></div>';
+        return;
+      }
+      list.innerHTML = grades.map(g => {
+        const col = gradeColor(g.grade), letter = letterGrade(g.grade);
+        return `<div class="grade-row">
+          <div class="grade-row-info">
+            <div class="course-name">${g.course?.name || '—'}</div>
+            <div class="course-meta">${g.course?.code || ''} · الفصل ${g.semester} – ${g.year}</div>
+          </div>
+          <div class="grade-row-score">
+            <div class="grade-row-bar"><div class="grade-row-bar-fill" style="width:${g.grade}%;background:${col}"></div></div>
+            <span style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:${col};min-width:36px;text-align:center">${g.grade}</span>
+            <span class="grade-letter" style="background:${col}1A;color:${col}">${letter}</span>
+          </div>
+        </div>`;
+      }).join('');
+    } catch (e) {
+      document.getElementById('profile-grades-list').innerHTML = '<p style="color:var(--red);text-align:center;padding:16px">تعذّر تحميل البيانات</p>';
+    }
+  }
+
+  // ── Init ──────────────────────────────────────────────
+  // Students go straight to their profile; admins go to dashboard
+  if (!isAdmin) {
+    // Auto-navigate student to My Profile on load
+    showPage('myprofile', null);
+    // Highlight the student-only nav item
+    document.querySelector('.nav-item.student-only')?.classList.add('active');
+  } else {
+    loadDashboard();
+  }
+</script>
+</body>
+</html>
