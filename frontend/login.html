@@ -415,6 +415,23 @@
         <span class="btn-text">إنشاء الحساب</span>
       </button>
             </div>
+
+            <!-- ── VERIFY FORM ── -->
+            <div class="form" id="form-verify">
+                <div style="text-align:center; margin-bottom:20px;">
+                    <div style="font-size:40px; margin-bottom:12px;">📧</div>
+                    <div style="font-size:15px; font-weight:700; margin-bottom:6px;">تحقق من بريدك الإلكتروني</div>
+                    <div style="font-size:13px; color:var(--text-muted);">تم إرسال كود من 6 أرقام إلى <span id="verify-email-display" style="color:var(--primary)"></span></div>
+                </div>
+                <div class="form-group">
+                    <label>كود التحقق</label>
+                    <input type="text" id="v-code" placeholder="123456" maxlength="6" style="text-align:center; font-size:22px; letter-spacing:8px; font-weight:700;" />
+                </div>
+                <button class="btn-submit" id="btn-verify" onclick="doVerify()">
+                    <div class="spinner"></div>
+                    <span class="btn-text">تأكيد الكود</span>
+                </button>
+            </div>
         </div>
 
         <div class="footer-note">Faculty of Computers &amp; Information — Assiut University</div>
@@ -422,6 +439,7 @@
 
     <script>
         const API = 'https://moo-production.up.railway.app/api';
+        let pendingEmail = '';
 
         // redirect if already logged in
         if (localStorage.getItem('gradeos_token')) {
@@ -551,15 +569,45 @@
                     return;
                 }
 
-                saveSession(data.token, data.data);
-                showAlert('تم إنشاء الحساب بنجاح، جاري التحويل...', 'success');
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 800);
+                // Show verification step
+                pendingEmail = email;
+                document.getElementById('verify-email-display').textContent = email;
+                document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
+                document.getElementById('form-verify').classList.add('active');
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                showAlert('تم إرسال كود التحقق إلى بريدك الإلكتروني', 'success');
             } catch (e) {
                 showAlert('تعذّر الاتصال بالسيرفر');
             } finally {
                 setLoading('btn-register', false);
+            }
+        }
+
+        async function doVerify() {
+            hideAlert();
+            const code = document.getElementById('v-code').value.trim();
+            if (!code || code.length !== 6) {
+                return showAlert('يرجى إدخال الكود المكون من 6 أرقام');
+            }
+            setLoading('btn-verify', true);
+            try {
+                const res = await fetch(`${API}/auth/verify-email`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: pendingEmail, code }),
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    showAlert(data.message || 'كود غير صحيح');
+                    return;
+                }
+                saveSession(data.token, data.data);
+                showAlert('تم التحقق بنجاح، جاري التحويل...', 'success');
+                setTimeout(() => { window.location.href = 'index.html'; }, 800);
+            } catch (e) {
+                showAlert('تعذّر الاتصال بالسيرفر');
+            } finally {
+                setLoading('btn-verify', false);
             }
         }
 
@@ -569,6 +617,7 @@
             const activeForm = document.querySelector('.form.active') ?.id;
             if (activeForm === 'form-login') doLogin();
             if (activeForm === 'form-register') doRegister();
+            if (activeForm === 'form-verify') doVerify();
         });
     </script>
 </body>
