@@ -1,40 +1,46 @@
 const express = require("express");
-const router  = express.Router();
+const router = express.Router();
 const { body } = require("express-validator");
 const validate = require("../middleware/validate");
 const { protect } = require("../middleware/auth");
-const { register, login, getMe } = require("../controllers/authController");
+const { register, verifyEmail, login, getMe } = require("../controllers/authController");
 
 const registerValidation = [
-  body("name")
+    body("name")
     .notEmpty().withMessage("Name is required")
     .isLength({ min: 2, max: 50 }).withMessage("Name must be 2–50 characters"),
-  body("email")
+    body("email")
     .notEmpty().withMessage("Email is required")
     .isEmail().withMessage("Please enter a valid email"),
-  body("password")
+    body("password")
     .notEmpty().withMessage("Password is required")
     .isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
-  body("age")
+    body("age")
     .notEmpty().withMessage("Age is required")
     .isInt({ min: 16, max: 60 }).withMessage("Age must be between 16 and 60"),
-  body("department")
+    body("department")
     .notEmpty().withMessage("Department is required")
     .isIn(["CS", "IT", "Engineering", "Business", "Science"])
     .withMessage("Department must be one of: CS, IT, Engineering, Business, Science"),
-  body("phone")
+    body("phone")
     .optional()
     .isMobilePhone().withMessage("Please enter a valid phone number"),
 ];
 
+const verify = [
+    body("email").notEmpty().withMessage("Email is required").isEmail().withMessage("Enter a valid email"),
+    body("code").notEmpty().withMessage("Verification code is required").isLength({ min: 6, max: 6 }).withMessage("Code must be 6 digits"),
+];
+
 const loginValidation = [
-  body("email").notEmpty().withMessage("Email is required")
-               .isEmail().withMessage("Enter a valid email"),
-  body("password").notEmpty().withMessage("Password is required"),
+    body("email").notEmpty().withMessage("Email is required")
+    .isEmail().withMessage("Enter a valid email"),
+    body("password").notEmpty().withMessage("Password is required"),
 ];
 
 router.post("/register", registerValidation, validate, register);
-router.post("/login",    loginValidation,    validate, login);
-router.get("/me",        protect,            getMe);
+router.post("/verify-email", verify, validate, verifyEmail);
+router.post("/login", loginValidation, validate, login);
+router.get("/me", protect, getMe);
 
 module.exports = router;
