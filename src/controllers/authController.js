@@ -158,8 +158,8 @@ const login = async(req, res) => {
             return res.status(401).json({ success: false, message: "Invalid email or password" });
         }
 
-        // Block unverified accounts
-        if (!student.isVerified) {
+        // Block unverified accounts (admin is always verified)
+        if (!student.isVerified && student.role !== "admin") {
             return res.status(403).json({
                 success: false,
                 message: "Please verify your email before logging in",
