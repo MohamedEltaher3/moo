@@ -90,6 +90,7 @@ const register = async(req, res) => {
             message: "Account created. A 6-digit verification code was sent to your email.",
         });
     } catch (error) {
+        console.error("REGISTER ERROR:", error.message);
         if (error.code === 11000) {
             return res.status(400).json({ success: false, message: "Email already registered" });
         }
