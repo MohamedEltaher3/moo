@@ -70,7 +70,15 @@ const register = async(req, res) => {
         const code = generateCode();
         const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-        const student = await Student.create({
+        // Send email FIRST — if it fails, don't create the account
+        try {
+            await sendVerificationEmail(email, name, code);
+        } catch (emailError) {
+            console.error("EMAIL ERROR:", emailError.message);
+            return res.status(500).json({ success: false, message: "Failed to send verification email. Please try again." });
+        }
+
+        await Student.create({
             name,
             email,
             password,
@@ -82,8 +90,6 @@ const register = async(req, res) => {
             verificationCode: code,
             verificationCodeExpires: expires,
         });
-
-        await sendVerificationEmail(email, name, code);
 
         res.status(201).json({
             success: true,
