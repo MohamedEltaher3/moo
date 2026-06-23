@@ -1,16 +1,10 @@
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 const Student = require("../models/Student");
 
-// ─── Email transporter ───────────────────────────────────────────────────────
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-});
+// ─── Resend client ────────────────────────────────────────────────────────────
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -36,8 +30,8 @@ const generateCode = () =>
 
 // Send verification email
 const sendVerificationEmail = async(email, name, code) => {
-    await transporter.sendMail({
-        from: `"GradeOS" <${process.env.EMAIL_USER}>`,
+    await resend.emails.send({
+        from: "GradeOS <onboarding@resend.dev>",
         to: email,
         subject: "GradeOS — Verify Your Email",
         html: `
