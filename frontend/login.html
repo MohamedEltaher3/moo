@@ -12,7 +12,7 @@
         *::after {
             box-sizing: border-box;
             margin: 0;
-            padding: 0;
+            padding: 0
         }
         
          :root {
@@ -29,7 +29,7 @@
             --red-dim: rgba(239, 68, 68, 0.12);
             --text: #E8EBF0;
             --text-muted: #6B7785;
-            --text-subtle: #3D4655;
+            --text-subtle: #3D4655
         }
         
         body {
@@ -40,9 +40,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 24px;
+            padding: 24px
         }
-        /* subtle grid pattern */
         
         body::before {
             content: '';
@@ -51,23 +50,22 @@
             background-image: linear-gradient(rgba(99, 102, 241, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(99, 102, 241, 0.04) 1px, transparent 1px);
             background-size: 48px 48px;
             pointer-events: none;
-            z-index: 0;
+            z-index: 0
         }
         
         .wrapper {
             position: relative;
             z-index: 1;
             width: 100%;
-            max-width: 420px;
+            max-width: 420px
         }
-        /* Brand */
         
         .brand {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 12px;
-            margin-bottom: 32px;
+            margin-bottom: 32px
         }
         
         .brand-icon {
@@ -78,37 +76,35 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 20px
         }
         
         .brand-name {
             font-family: 'Space Grotesk', sans-serif;
             font-size: 22px;
             font-weight: 700;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.5px
         }
-        /* Card */
         
         .card {
             background: var(--card);
             border: 1px solid var(--border-strong);
             border-radius: 16px;
             padding: 32px;
-            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5)
         }
         
         .card-title {
             font-size: 18px;
             font-weight: 700;
-            margin-bottom: 4px;
+            margin-bottom: 4px
         }
         
         .card-sub {
             font-size: 13px;
             color: var(--text-muted);
-            margin-bottom: 28px;
+            margin-bottom: 28px
         }
-        /* Tab switcher */
         
         .tabs {
             display: grid;
@@ -117,7 +113,7 @@
             background: var(--surface);
             border-radius: 10px;
             padding: 4px;
-            margin-bottom: 24px;
+            margin-bottom: 24px
         }
         
         .tab {
@@ -131,26 +127,25 @@
             background: transparent;
             color: var(--text-muted);
             transition: all 0.15s;
-            text-align: center;
+            text-align: center
         }
         
         .tab.active {
             background: var(--card);
             color: var(--text);
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3)
         }
-        /* Form */
         
         .form {
-            display: none;
+            display: none
         }
         
         .form.active {
-            display: block;
+            display: block
         }
         
         .form-group {
-            margin-bottom: 16px;
+            margin-bottom: 16px
         }
         
         .form-group label {
@@ -160,11 +155,11 @@
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.06em;
-            margin-bottom: 7px;
+            margin-bottom: 7px
         }
         
         .input-wrap {
-            position: relative;
+            position: relative
         }
         
         .form-group input,
@@ -178,19 +173,18 @@
             color: var(--text);
             background: var(--surface);
             outline: none;
-            transition: border-color 0.15s, background 0.15s;
+            transition: border-color 0.15s, background 0.15s
         }
         
         .form-group input:focus,
         .form-group select:focus {
             border-color: var(--primary);
-            background: #0D1018;
+            background: #0D1018
         }
         
         .form-group select option {
-            background: var(--surface);
+            background: var(--surface)
         }
-        /* password toggle */
         
         .eye-btn {
             position: absolute;
@@ -203,19 +197,18 @@
             cursor: pointer;
             font-size: 16px;
             padding: 2px;
-            line-height: 1;
+            line-height: 1
         }
         
         .eye-btn:hover {
-            color: var(--text);
+            color: var(--text)
         }
         
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 12px
         }
-        /* Submit button */
         
         .btn-submit {
             width: 100%;
@@ -233,16 +226,16 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 8px
         }
         
         .btn-submit:hover:not(:disabled) {
-            background: #5254d4;
+            background: #5254d4
         }
         
         .btn-submit:disabled {
             opacity: 0.6;
-            cursor: not-allowed;
+            cursor: not-allowed
         }
         
         .spinner {
@@ -252,23 +245,22 @@
             border-top-color: #fff;
             border-radius: 50%;
             animation: spin 0.7s linear infinite;
-            display: none;
+            display: none
         }
         
         .btn-submit.loading .spinner {
-            display: block;
+            display: block
         }
         
         .btn-submit.loading .btn-text {
-            display: none;
+            display: none
         }
         
         @keyframes spin {
             to {
-                transform: rotate(360deg);
+                transform: rotate(360deg)
             }
         }
-        /* Error / success */
         
         .alert {
             display: none;
@@ -278,80 +270,90 @@
             font-weight: 500;
             margin-bottom: 16px;
             align-items: center;
-            gap: 8px;
+            gap: 8px
         }
         
         .alert.show {
-            display: flex;
+            display: flex
         }
         
         .alert.error {
             background: var(--red-dim);
             border: 1px solid rgba(239, 68, 68, 0.25);
-            color: #f87171;
+            color: #f87171
         }
         
         .alert.success {
             background: rgba(16, 185, 129, 0.12);
             border: 1px solid rgba(16, 185, 129, 0.25);
-            color: #34d399;
+            color: #34d399
         }
-        /* Divider */
-        
-        .divider {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 20px 0;
-            color: var(--text-subtle);
-            font-size: 12px;
-        }
-        
-        .divider::before,
-        .divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: var(--border);
-        }
-        /* Footer note */
         
         .footer-note {
             text-align: center;
             margin-top: 20px;
             font-size: 12px;
-            color: var(--text-subtle);
+            color: var(--text-subtle)
+        }
+        
+        .otp-input {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 10px
+        }
+        
+        .verify-hint {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 20px
+        }
+        
+        .verify-hint span {
+            color: var(--primary);
+            font-weight: 600
+        }
+        
+        .resend-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 13px;
+            font-family: 'Cairo', sans-serif;
+            cursor: pointer;
+            margin-top: 12px;
+            width: 100%;
+            text-align: center
+        }
+        
+        .resend-btn:hover {
+            text-decoration: underline
         }
     </style>
 </head>
 
 <body>
-
     <div class="wrapper">
-        <!-- Brand -->
         <div class="brand">
             <div class="brand-icon">🎓</div>
             <span class="brand-name">GradeOS</span>
         </div>
-
-        <!-- Card -->
         <div class="card">
             <div class="card-title">مرحبًا بك</div>
             <div class="card-sub">سجّل دخولك أو أنشئ حسابًا جديدًا</div>
 
-            <!-- Tab switcher -->
-            <div class="tabs">
+            <div class="tabs" id="tabs-bar">
                 <button class="tab active" id="tab-login" onclick="switchTab('login')">تسجيل الدخول</button>
                 <button class="tab" id="tab-register" onclick="switchTab('register')">حساب جديد</button>
             </div>
 
-            <!-- Alert -->
             <div class="alert" id="alert">
                 <span id="alert-icon">✕</span>
                 <span id="alert-msg">خطأ</span>
             </div>
 
-            <!-- ── LOGIN FORM ── -->
+            <!-- LOGIN -->
             <div class="form active" id="form-login">
                 <div class="form-group">
                     <label>البريد الإلكتروني</label>
@@ -361,16 +363,15 @@
                     <label>كلمة المرور</label>
                     <div class="input-wrap">
                         <input type="password" id="l-password" placeholder="••••••••" autocomplete="current-password" />
-                        <button class="eye-btn" type="button" onclick="togglePass('l-password', this)">👁</button>
+                        <button class="eye-btn" type="button" onclick="togglePass('l-password',this)">👁</button>
                     </div>
                 </div>
                 <button class="btn-submit" id="btn-login" onclick="doLogin()">
-        <div class="spinner"></div>
-        <span class="btn-text">تسجيل الدخول</span>
-      </button>
+          <div class="spinner"></div><span class="btn-text">تسجيل الدخول</span>
+        </button>
             </div>
 
-            <!-- ── REGISTER FORM ── -->
+            <!-- REGISTER -->
             <div class="form" id="form-register">
                 <div class="form-row">
                     <div class="form-group">
@@ -386,7 +387,7 @@
                     <label>كلمة المرور * (6 أحرف على الأقل)</label>
                     <div class="input-wrap">
                         <input type="password" id="r-password" placeholder="••••••••" autocomplete="new-password" />
-                        <button class="eye-btn" type="button" onclick="togglePass('r-password', this)">👁</button>
+                        <button class="eye-btn" type="button" onclick="togglePass('r-password',this)">👁</button>
                     </div>
                 </div>
                 <div class="form-row">
@@ -397,13 +398,13 @@
                     <div class="form-group">
                         <label>القسم *</label>
                         <select id="r-department">
-            <option value="">— اختر —</option>
-            <option value="CS">CS</option>
-            <option value="IT">IT</option>
-            <option value="Engineering">Engineering</option>
-            <option value="Business">Business</option>
-            <option value="Science">Science</option>
-          </select>
+              <option value="">— اختر —</option>
+              <option value="CS">CS</option>
+              <option value="IT">IT</option>
+              <option value="Engineering">Engineering</option>
+              <option value="Business">Business</option>
+              <option value="Science">Science</option>
+            </select>
                     </div>
                 </div>
                 <div class="form-group">
@@ -411,28 +412,48 @@
                     <input type="text" id="r-phone" placeholder="+201012345678" />
                 </div>
                 <button class="btn-submit" id="btn-register" onclick="doRegister()">
-        <div class="spinner"></div>
-        <span class="btn-text">إنشاء الحساب</span>
-      </button>
+          <div class="spinner"></div><span class="btn-text">إنشاء الحساب</span>
+        </button>
+            </div>
+
+            <!-- VERIFY -->
+            <div class="form" id="form-verify">
+                <div style="text-align:center;margin-bottom:20px;font-size:40px">📧</div>
+                <p class="verify-hint">تم إرسال كود التحقق إلى<br><span id="verify-email-display"></span></p>
+                <div class="form-group">
+                    <label>كود التحقق</label>
+                    <input type="text" id="v-otp" placeholder="123456" maxlength="6" class="otp-input" />
+                </div>
+                <button class="btn-submit" id="btn-verify" onclick="doVerify()">
+          <div class="spinner"></div><span class="btn-text">تأكيد الكود</span>
+        </button>
+                <button class="resend-btn" onclick="doResend()">إعادة إرسال الكود</button>
             </div>
         </div>
-
         <div class="footer-note">Faculty of Computers &amp; Information — Assiut University</div>
     </div>
 
     <script>
         const API = 'https://moo-production.up.railway.app/api';
+        let pendingEmail = '';
 
-        // redirect if already logged in
-        if (localStorage.getItem('gradeos_token')) {
-            window.location.href = 'index.html';
-        }
+        if (localStorage.getItem('gradeos_token')) window.location.href = 'index.html';
 
         function switchTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
             document.getElementById('tab-' + tab).classList.add('active');
             document.getElementById('form-' + tab).classList.add('active');
+            document.getElementById('tabs-bar').style.display = 'grid';
+            hideAlert();
+        }
+
+        function showVerifyForm(email) {
+            pendingEmail = email;
+            document.getElementById('verify-email-display').textContent = email;
+            document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
+            document.getElementById('form-verify').classList.add('active');
+            document.getElementById('tabs-bar').style.display = 'none';
             hideAlert();
         }
 
@@ -473,11 +494,7 @@
             hideAlert();
             const email = document.getElementById('l-email').value.trim();
             const password = document.getElementById('l-password').value;
-
-            if (!email || !password) {
-                return showAlert('يرجى إدخال البريد الإلكتروني وكلمة المرور');
-            }
-
+            if (!email || !password) return showAlert('يرجى إدخال البريد الإلكتروني وكلمة المرور');
             setLoading('btn-login', true);
             try {
                 const res = await fetch(`${API}/auth/login`, {
@@ -488,20 +505,21 @@
                     body: JSON.stringify({
                         email,
                         password
-                    }),
+                    })
                 });
                 const data = await res.json();
-
                 if (!res.ok) {
+                    if (data.needsVerification) {
+                        showVerifyForm(data.email || email);
+                        showAlert('يرجى التحقق من بريدك الإلكتروني أولاً', 'error');
+                        return;
+                    }
                     showAlert(data.message || 'بيانات الدخول غير صحيحة');
                     return;
                 }
-
                 saveSession(data.token, data.data);
                 showAlert('تم تسجيل الدخول بنجاح، جاري التحويل...', 'success');
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 800);
+                setTimeout(() => window.location.href = 'index.html', 800);
             } catch (e) {
                 showAlert('تعذّر الاتصال بالسيرفر');
             } finally {
@@ -517,14 +535,8 @@
             const age = document.getElementById('r-age').value;
             const department = document.getElementById('r-department').value;
             const phone = document.getElementById('r-phone').value.trim();
-
-            if (!name || !email || !password || !age || !department) {
-                return showAlert('يرجى ملء جميع الحقول المطلوبة');
-            }
-            if (password.length < 6) {
-                return showAlert('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
-            }
-
+            if (!name || !email || !password || !age || !department) return showAlert('يرجى ملء جميع الحقول المطلوبة');
+            if (password.length < 6) return showAlert('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
             setLoading('btn-register', true);
             try {
                 const body = {
@@ -535,27 +547,20 @@
                     department
                 };
                 if (phone) body.phone = phone;
-
                 const res = await fetch(`${API}/auth/register`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(body),
+                    body: JSON.stringify(body)
                 });
                 const data = await res.json();
-
                 if (!res.ok) {
-                    const errMsg = data.errors ?.[0] ?.message || data.message || 'فشل إنشاء الحساب';
-                    showAlert(errMsg);
+                    showAlert(data.errors ? .[0] ? .message || data.message || 'فشل إنشاء الحساب');
                     return;
                 }
-
-                saveSession(data.token, data.data);
-                showAlert('تم إنشاء الحساب بنجاح، جاري التحويل...', 'success');
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 800);
+                showVerifyForm(email);
+                showAlert('تم إرسال كود التحقق إلى بريدك الإلكتروني', 'success');
             } catch (e) {
                 showAlert('تعذّر الاتصال بالسيرفر');
             } finally {
@@ -563,12 +568,62 @@
             }
         }
 
-        // Enter key support
+        async function doVerify() {
+            hideAlert();
+            const otp = document.getElementById('v-otp').value.trim();
+            if (!otp || otp.length !== 6) return showAlert('يرجى إدخال الكود المكون من 6 أرقام');
+            setLoading('btn-verify', true);
+            try {
+                const res = await fetch(`${API}/auth/verify-email`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: pendingEmail,
+                        otp
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    showAlert(data.message || 'كود غير صحيح');
+                    return;
+                }
+                saveSession(data.token, data.data);
+                showAlert('تم التحقق بنجاح، جاري التحويل...', 'success');
+                setTimeout(() => window.location.href = 'index.html', 800);
+            } catch (e) {
+                showAlert('تعذّر الاتصال بالسيرفر');
+            } finally {
+                setLoading('btn-verify', false);
+            }
+        }
+
+        async function doResend() {
+            if (!pendingEmail) return;
+            try {
+                const res = await fetch(`${API}/auth/resend-otp`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: pendingEmail
+                    })
+                });
+                const data = await res.json();
+                showAlert(data.success ? 'تم إرسال كود جديد' : data.message, data.success ? 'success' : 'error');
+            } catch (e) {
+                showAlert('تعذّر الاتصال بالسيرفر');
+            }
+        }
+
         document.addEventListener('keydown', (e) => {
             if (e.key !== 'Enter') return;
-            const activeForm = document.querySelector('.form.active') ?.id;
+            const activeForm = document.querySelector('.form.active') ? .id;
             if (activeForm === 'form-login') doLogin();
             if (activeForm === 'form-register') doRegister();
+            if (activeForm === 'form-verify') doVerify();
         });
     </script>
 </body>
