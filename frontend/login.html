@@ -556,7 +556,7 @@
                 });
                 const data = await res.json();
                 if (!res.ok) {
-                    showAlert(data.errors ? .[0] ? .message || data.message || 'فشل إنشاء الحساب');
+                    showAlert(data.errors ?.[0] ?.message || data.message || 'فشل إنشاء الحساب');
                     return;
                 }
                 showVerifyForm(email);
@@ -620,7 +620,7 @@
 
         document.addEventListener('keydown', (e) => {
             if (e.key !== 'Enter') return;
-            const activeForm = document.querySelector('.form.active') ? .id;
+            const activeForm = document.querySelector('.form.active') ?.id;
             if (activeForm === 'form-login') doLogin();
             if (activeForm === 'form-register') doRegister();
             if (activeForm === 'form-verify') doVerify();
