@@ -5,23 +5,21 @@ const nodemailer = require("nodemailer");
  * This avoids Gmail silently dropping emails to external recipients.
  */
 const createTransporter = () => {
-  const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true, // SSL
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS, // Gmail App Password (16 chars, no spaces)
-    },
-    // Force a new connection per email — avoids Gmail idle-timeout issues
-    pool: false,
-    // Increase timeouts for slow networks
-    connectionTimeout: 10000,
-    greetingTimeout:   10000,
-    socketTimeout:     15000,
-  });
+    const transporter = nodemailer.createTransport({
+        host: process.env.EMAIL_HOST || "smtp-relay.brevo.com",
+        port: parseInt(process.env.EMAIL_PORT) || 587,
+        secure: false,
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+        },
+        pool: false,
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000,
+    });
 
-  return transporter;
+    return transporter;
 };
 
 /**
@@ -30,17 +28,17 @@ const createTransporter = () => {
  * @param {string} otp      - 6-digit code
  * @param {string} name     - student's name
  */
-const sendVerificationEmail = async (toEmail, otp, name) => {
-  const transporter = createTransporter();
+const sendVerificationEmail = async(toEmail, otp, name) => {
+    const transporter = createTransporter();
 
-  // Verify connection before sending (throws early if credentials are wrong)
-  await transporter.verify();
+    // Verify connection before sending (throws early if credentials are wrong)
+    await transporter.verify();
 
-  const mailOptions = {
-    from: `"GradeOS 🎓" <${process.env.EMAIL_USER}>`,
-    to: toEmail,
-    subject: "Verify Your GradeOS Account",
-    html: `
+    const mailOptions = {
+        from: `"GradeOS 🎓" <${process.env.EMAIL_USER}>`,
+        to: toEmail,
+        subject: "Verify Your GradeOS Account",
+        html: `
       <!DOCTYPE html>
       <html>
       <head>
@@ -100,11 +98,11 @@ const sendVerificationEmail = async (toEmail, otp, name) => {
       </body>
       </html>
     `,
-  };
+    };
 
-  const info = await transporter.sendMail(mailOptions);
-  console.log(`✅ Email sent to ${toEmail} — Message ID: ${info.messageId}`);
-  return info;
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ Email sent to ${toEmail} — Message ID: ${info.messageId}`);
+    return info;
 };
 
 module.exports = { sendVerificationEmail };
