@@ -1,70 +1,75 @@
 const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
+const bcrypt   = require("bcryptjs");
 
-const studentSchema = new mongoose.Schema({
+const studentSchema = new mongoose.Schema(
+  {
     name: {
-        type: String,
-        required: true,
-        trim: true,
+      type: String,
+      required: true,
+      trim: true,
     },
     email: {
-        type: String,
-        required: true,
-        unique: true,
-        lowercase: true,
-        trim: true,
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
     },
     password: {
-        type: String,
-        required: true,
-        minlength: 6,
-        select: false,
+      type: String,
+      required: true,
+      minlength: 6,
+      select: false,
     },
     role: {
-        type: String,
-        enum: ["student", "admin"],
-        default: "student",
+      type: String,
+      enum: ["student", "admin"],
+      default: "student",
     },
     age: {
-        type: Number,
-        required: true,
-        min: 16,
-        max: 60,
+      type: Number,
+      required: true,
+      min: 16,
+      max: 60,
     },
     department: {
-        type: String,
-        required: true,
-        enum: ["CS", "IT", "Engineering", "Business", "Science"],
+      type: String,
+      required: true,
+      enum: ["CS", "IT", "Engineering", "Business", "Science"],
     },
     phone: {
-        type: String,
-        trim: true,
+      type: String,
+      trim: true,
     },
-    isVerified: {
-        type: Boolean,
-        default: false,
+
+    // ── Email Verification ──────────────────────────────
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
     },
-    verificationCode: {
-        type: String,
-        select: false,
+    emailVerifyOTP: {
+      type: String,
+      select: false,
     },
-    verificationCodeExpires: {
-        type: Date,
-        select: false,
+    emailVerifyOTPExpires: {
+      type: Date,
+      select: false,
     },
-}, { timestamps: true });
+  },
+  { timestamps: true }
+);
 
 // Hash password before saving
-studentSchema.pre("save", async function(next) {
-    if (!this.isModified("password")) return next();
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
+studentSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
 });
 
 // Instance method: compare password
-studentSchema.methods.matchPassword = async function(enteredPassword) {
-    return bcrypt.compare(enteredPassword, this.password);
+studentSchema.methods.matchPassword = async function (enteredPassword) {
+  return bcrypt.compare(enteredPassword, this.password);
 };
 
 module.exports = mongoose.model("Student", studentSchema);
