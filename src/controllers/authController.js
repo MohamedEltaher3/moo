@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
 const Student = require("../models/Student");
+const PendingStudent = require("../models/PendingStudent");
 const { sendVerificationEmail } = require("../utils/emailService");
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -21,7 +21,6 @@ const safeUser = (student) => ({
     isEmailVerified: student.isEmailVerified,
 });
 
-/** Generate a 6-digit numeric OTP */
 const generateOTP = () =>
     Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -30,32 +29,19 @@ const register = async(req, res) => {
     try {
         const { name, email, password, age, department, phone } = req.body;
 
-        const existing = await Student.findOne({ email });
-        if (existing) {
+        // Check real students
+        const existingStudent = await Student.findOne({ email });
+        if (existingStudent) {
             return res.status(400).json({ success: false, message: "Email already registered" });
         }
 
         const otp = generateOTP();
         const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 min
 
-        const student = await Student.create({
-            name,
-            email,
-            password,
-            age,
-            department,
-            phone,
-            role: "student",
-            isEmailVerified: false,
-            emailVerifyOTP: otp,
-            emailVerifyOTPExpires: expires,
-        });
-
-        // Send OTP email — if it fails, delete the account and return an error
+        // Send email FIRST — if it fails, don't save anything
         try {
             await sendVerificationEmail(email, otp, name);
         } catch (mailErr) {
-            await Student.findByIdAndDelete(student._id);
             console.error("Mail error:", mailErr.message);
             return res.status(500).json({
                 success: false,
@@ -63,15 +49,15 @@ const register = async(req, res) => {
             });
         }
 
+        // Save to pending collection (upsert in case they try again)
+        await PendingStudent.findOneAndUpdate({ email }, { name, email, password, age, department, phone, otp, otpExpires: expires }, { upsert: true, new: true });
+
         res.status(201).json({
             success: true,
-            message: "Account created! Check your email for the 6-digit verification code.",
-            data: { email: student.email },
+            message: "Check your email for the 6-digit verification code.",
+            data: { email },
         });
     } catch (error) {
-        if (error.code === 11000) {
-            return res.status(400).json({ success: false, message: "Email already registered" });
-        }
         res.status(500).json({ success: false, message: error.message });
     }
 };
@@ -85,37 +71,41 @@ const verifyEmail = async(req, res) => {
             return res.status(400).json({ success: false, message: "Email and OTP are required" });
         }
 
-        // Fetch OTP fields explicitly (they're select:false)
-        const student = await Student.findOne({ email })
-            .select("+emailVerifyOTP +emailVerifyOTPExpires");
+        const pending = await PendingStudent.findOne({ email });
 
-        if (!student) {
-            return res.status(404).json({ success: false, message: "No account found with this email" });
+        if (!pending) {
+            return res.status(404).json({ success: false, message: "No pending registration found. Please register again." });
         }
 
-        if (student.isEmailVerified) {
-            return res.status(400).json({ success: false, message: "Email is already verified" });
-        }
-
-        if (!student.emailVerifyOTP || student.emailVerifyOTP !== otp) {
+        if (pending.otp !== otp) {
             return res.status(400).json({ success: false, message: "Invalid OTP" });
         }
 
-        if (student.emailVerifyOTPExpires < new Date()) {
-            return res.status(400).json({ success: false, message: "OTP has expired — please request a new one" });
+        if (pending.otpExpires < new Date()) {
+            await PendingStudent.findOneAndDelete({ email });
+            return res.status(400).json({ success: false, message: "OTP has expired — please register again" });
         }
 
-        // Mark verified & clear OTP
-        student.isEmailVerified = true;
-        student.emailVerifyOTP = undefined;
-        student.emailVerifyOTPExpires = undefined;
-        await student.save();
+        // Create the real student account
+        const student = await Student.create({
+            name: pending.name,
+            email: pending.email,
+            password: pending.password,
+            age: pending.age,
+            department: pending.department,
+            phone: pending.phone,
+            role: "student",
+            isEmailVerified: true,
+        });
+
+        // Delete pending record
+        await PendingStudent.findOneAndDelete({ email });
 
         const token = signToken(student._id);
 
         res.status(200).json({
             success: true,
-            message: "Email verified successfully! You are now logged in.",
+            message: "Email verified! You are now logged in.",
             token,
             data: safeUser(student),
         });
@@ -128,30 +118,21 @@ const verifyEmail = async(req, res) => {
 const resendOTP = async(req, res) => {
     try {
         const { email } = req.body;
+        if (!email) return res.status(400).json({ success: false, message: "Email is required" });
 
-        if (!email) {
-            return res.status(400).json({ success: false, message: "Email is required" });
-        }
-
-        const student = await Student.findOne({ email })
-            .select("+emailVerifyOTP +emailVerifyOTPExpires");
-
-        if (!student) {
-            return res.status(404).json({ success: false, message: "No account found with this email" });
-        }
-
-        if (student.isEmailVerified) {
-            return res.status(400).json({ success: false, message: "Email is already verified" });
+        const pending = await PendingStudent.findOne({ email });
+        if (!pending) {
+            return res.status(404).json({ success: false, message: "No pending registration found. Please register again." });
         }
 
         const otp = generateOTP();
         const expires = new Date(Date.now() + 15 * 60 * 1000);
 
-        student.emailVerifyOTP = otp;
-        student.emailVerifyOTPExpires = expires;
-        await student.save();
+        pending.otp = otp;
+        pending.otpExpires = expires;
+        await pending.save();
 
-        await sendVerificationEmail(email, otp, student.name);
+        await sendVerificationEmail(email, otp, pending.name);
 
         res.status(200).json({ success: true, message: "New OTP sent to your email" });
     } catch (error) {
@@ -174,7 +155,6 @@ const login = async(req, res) => {
             return res.status(401).json({ success: false, message: "Invalid email or password" });
         }
 
-        // Block unverified accounts (admin bypasses this check)
         if (!student.isEmailVerified && student.role !== "admin") {
             return res.status(403).json({
                 success: false,
