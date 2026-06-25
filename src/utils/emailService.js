@@ -2,7 +2,7 @@ const https = require("https");
 
 const sendVerificationEmail = async(toEmail, otp, name) => {
     const payload = JSON.stringify({
-        sender: { name: "GradeOS", email: "mo9997944@gmail.com" },
+        sender: { name: "GradeOS", email: "afc298001@smtp-brevo.com" },
         to: [{ email: toEmail, name: name }],
         subject: "Verify Your GradeOS Account",
         htmlContent: `
