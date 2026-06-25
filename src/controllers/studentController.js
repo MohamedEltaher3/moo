@@ -10,7 +10,7 @@ const getAllStudents = async(req, res) => {
         }
 
         const { department, name } = req.query;
-        const filter = { isEmailVerified: true, role: "student" };
+        const filter = {};
         if (department) filter.department = department;
         if (name) filter.name = { $regex: name, $options: "i" };
 
